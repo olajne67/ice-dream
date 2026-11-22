@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICE DREAM</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;overflow:hidden;background:#b8e7f8;font-family:Arial}
+#ui{position:absolute;inset:0;pointer-events:none;color:white}
+#logo{position:absolute;top:20px;left:25px;font-size:28px;font-weight:bold;letter-spacing:4px;text-shadow:0 2px 8px #5686a8}
+#help{position:absolute;top:70px;left:25px;background:#183b5c99;padding:12px;border-radius:12px;font-size:13px;line-height:1.7}
+#moves{position:absolute;bottom:25px;right:25px;display:flex;gap:10px;pointer-events:auto}
+button{border:1px solid #ffffff88;background:#ffffffdd;color:#24496b;padding:15px 18px;border-radius:15px;font-weight:bold;cursor:pointer}
+button:hover{background:#bcecff}
+#status{position:absolute;bottom:28px;left:25px;background:#183b5c99;padding:12px 18px;border-radius:12px}
+</style>
+</head>
+<body>
+<div id="ui">
+<div id="logo">ICE DREAM</div>
+<div id="help">
+<b>CONTROLS</b><br>
+W A S D – Skate<br>
+SPACE – Jump<br>
+Mouse – Camera<br>
+<b>Welcome to the rink!</b>
+</div>
+<div id="status">⛸️ TRAINING MODE</div>
+<div id="moves">
+<button onclick="move('jump')">JUMPS</button>
+<button onclick="move('spin')">SPINS</button>
+<button onclick="move('foot')">FOOTWORK</button>
+</div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xb8e7f8);
+scene.fog=new THREE.Fog(0xb8e7f8,35,100);
+
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x7295b2,2));
+const sun=new THREE.DirectionalLight(0xffffff,2.5);
+sun.position.set(-10,20,10);
+sun.castShadow=true;
+scene.add(sun);
+
+const mat=(color,roughness=.7)=>new THREE.MeshStandardMaterial({color,roughness});
+const ice=mat(0xc9f1ff,.2);
+const white=mat(0xffffff);
+const blue=mat(0x91cbea);
+const dark=mat(0x29425c);
+const skin=mat(0xf0c6a5);
+const hair=mat(0x593c32);
+
+function cube(w,h,d,material,x,y,z){
+const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+m.position.set(x,y,z);
+m.castShadow=true;m.receiveShadow=true;
+scene.add(m);return m;
+}
+
+// RINK
+cube(32,.5,24,blue,0,-.5,0);
+cube(30,.15,22,ice,0,-.17,0);
+
+// rink markings
+const lineMat=new THREE.MeshBasicMaterial({color:0xffffff});
+function line(x1,z1,x2,z2){
+const dx=x2-x1,dz=z2-z1;
+const m=new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(dx,dz),.015,.06),lineMat);
+m.position.set((x1+x2)/2,-.08,(z1+z2)/2);
+m.rotation.y=-Math.atan2(dz,dx);scene.add(m);
+}
+line(-14,-10,14,-10);line(-14,10,14,10);
+line(-14,0,14,0);
+
+const board=mat(0xf5fcff);
+cube(32,1.2,.25,board,0,.55,-11);
+cube(32,1.2,.25,board,0,.55,11);
+cube(.25,1.2,22,board,-15.9,.55,0);
+cube(.25,1.2,22,board,15.9,.55,0);
+
+// roof and lights
+cube(38,.5,29,white,0,10,0);
+for(let i=-1;i<=1;i++){
+const light=new THREE.PointLight(0xffffff,100,30);
+light.position.set(i*10,8,0);scene.add(light);
+}
+
+// avatar
+const skater=new THREE.Group();
+scene.add(skater);
+
+const torso=new THREE.Group();
+torso.position.y=1.35;skater.add(torso);
+
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.3,.65,5,10),mat(0x8ec9ee));
+body.castShadow=true;torso.add(body);
+
+const head=new THREE.Mesh(new THREE.SphereGeometry(.24,24,24),skin);
+head.position.y=.72;torso.add(head);
+
+const hairTop=new THREE.Mesh(new THREE.SphereGeometry(.25,20,16),hair);
+hairTop.scale.set(1, .65, 1);
+hairTop.position.y=.84;torso.add(hairTop);
+
+function limb(parent,length,radius,material,y){
+const pivot=new THREE.Group();
+pivot.position.set(0,y,0);parent.add(pivot);
+const mesh=new THREE.Mesh(new THREE.CapsuleGeometry(radius,length,5,8),material);
+mesh.position.y=-length/2;
+mesh.castShadow=true;pivot.add(mesh);
+return pivot;
+}
+
+const leftArm=limb(torso,.65,.105,skin,.25);
+leftArm.position.x=-.4;
+const rightArm=limb(torso,.65,.105,skin,.25);
+rightArm.position.x=.4;
+
+const leftLeg=limb(skater,.85,.14,mat(0x8ec9ee),.9);
+leftLeg.position.x=-.17;
+const rightLeg=limb(skater,.85,.14,mat(0x8ec9ee),.9);
+rightLeg.position.x=.17;
+
+function skate(x){
+const g=new THREE.Group();g.position.set(x,.07,0);skater.add(g);
+const boot=new THREE.Mesh(new THREE.BoxGeometry(.2,.18,.55),white);
+boot.position.z=-.12;g.add(boot);
+const blade=new THREE.Mesh(new THREE.BoxGeometry(.035,.045,.65),dark);
+blade.position.y=-.1;blade.position.z=-.12;g.add(blade);
+return g;
+}
+const skateL=skate(-.17),skateR=skate(.17);
+
+// controls
+const keys={};
+addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space')e.preventDefault()});
+addEventListener('keyup',e=>keys[e.code]=false);
+
+let speed=0,turn=0,jump=0,spin=0,foot=0;
+let action='';
+
+window.move=function(type){
+action=type;
+if(type==='jump')jump=1;
+if(type==='spin')spin=1;
+if(type==='foot')foot=1;
+document.getElementById('status').textContent=
+type==='jump'?'⛸️ JUMP TRAINING':type==='spin'?'✨ SPIN TRAINING':'💫 FOOTWORK TRAINING';
+};
+
+let last=performance.now();
+const clock=new THREE.Clock();
+
+function animate(){
+requestAnimationFrame(animate);
+const dt=Math.min(clock.getDelta(),.04);
+
+// skating acceleration
+let forward=(keys.KeyW?1:0)-(keys.KeyS?1:0);
+let steering=(keys.KeyA?1:0)-(keys.KeyD?1:0);
+speed+=forward*5*dt;
+speed*=Math.pow(.985,dt*60);
+speed=THREE.MathUtils.clamp(speed,-5,10);
+
+skater.rotation.y+=steering*dt*(1+Math.abs(speed)*.13);
+const direction=new THREE.Vector3(0,0,-1).applyQuaternion(skater.quaternion);
+skater.position.addScaledVector(direction,speed*dt);
+
+// jump
+if(keys.Space)jump=1;
+if(jump>0){
+skater.position.y+=Math.sin((1-jump)*Math.PI)*5*dt;
+jump-=dt*1.5;
+if(jump<=0){jump=0;skater.position.y=0}
+}
+if(skater.position.y<0)skater.position.y=0;
+
+// body animation
+const t=clock.elapsedTime;
+const moving=Math.min(Math.abs(speed)/5,1);
+torso.rotation.z=THREE.MathUtils.lerp(torso.rotation.z,-steering*.18,.08);
+torso.rotation.x=-moving*.08;
+leftArm.rotation.z=-.25+Math.sin(t*7)*moving*.2;
+rightArm.rotation.z=.25-Math.sin(t*7)*moving*.2;
+leftLeg.rotation.x=Math.sin(t*8)*moving*.3;
+rightLeg.rotation.x=-Math.sin(t*8)*moving*.3;
+
+// spins
+if(spin>0){
+skater.rotation.y+=dt*8;
+spin=Math.max(0,spin-dt*.9);
+}
+// footwork
+if(foot>0){
+leftLeg.rotation.x=Math.sin(t*18)*.8;
+rightLeg.rotation.x=-Math.sin(t*18)*.8;
+foot=Math.max(0,foot-dt*2);
+}
+
+// camera follows skater
+const target=new THREE.Vector3(0,2,5).applyQuaternion(skater.quaternion).add(skater.position);
+camera.position.lerp(target,.09);
+camera.lookAt(skater.position.x,1.2,skater.position.z);
+
+// keep player on rink
+skater.position.x=THREE.MathUtils.clamp(skater.position.x,-14,14);
+skater.position.z=THREE.MathUtils.clamp(skater.position.z,-10,10);
+
+renderer.render(scene,camera);
+}
+animate();
+
+addEventListener('resize',()=>{
+camera.aspect=innerWidth/innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(innerWidth,innerHeight);
+});
+</script>
+</body>
+</html>
