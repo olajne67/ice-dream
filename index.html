@@ -1,236 +1,1140 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICE DREAM</title>
+<title>ICE DREAM 2.0</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#b8e7f8;font-family:Arial}
-#ui{position:absolute;inset:0;pointer-events:none;color:white}
-#logo{position:absolute;top:20px;left:25px;font-size:28px;font-weight:bold;letter-spacing:4px;text-shadow:0 2px 8px #5686a8}
-#help{position:absolute;top:70px;left:25px;background:#183b5c99;padding:12px;border-radius:12px;font-size:13px;line-height:1.7}
-#moves{position:absolute;bottom:25px;right:25px;display:flex;gap:10px;pointer-events:auto}
-button{border:1px solid #ffffff88;background:#ffffffdd;color:#24496b;padding:15px 18px;border-radius:15px;font-weight:bold;cursor:pointer}
-button:hover{background:#bcecff}
-#status{position:absolute;bottom:28px;left:25px;background:#183b5c99;padding:12px 18px;border-radius:12px}
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  overflow:hidden;
+  font-family:Montserrat,Arial,sans-serif;
+  background:#d7eff8;
+  color:#24435c;
+}
+
+button,input,select { font-family:inherit; }
+
+button {
+  cursor:pointer;
+  border:0;
+  transition:.2s;
+}
+
+button:hover { transform:translateY(-2px); }
+
+.hidden { display:none !important; }
+
+#game {
+  position:fixed;
+  inset:0;
+}
+
+#game canvas {
+  display:block;
+}
+
+.screen {
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,rgba(13,45,70,.88),rgba(72,146,179,.55));
+  z-index:10;
+}
+
+.panel {
+  width:min(520px,92vw);
+  max-height:90vh;
+  overflow-y:auto;
+  padding:32px;
+  background:rgba(248,253,255,.96);
+  border:1px solid white;
+  border-radius:24px;
+  box-shadow:0 20px 70px #102e4555;
+}
+
+.logo {
+  font-size:48px;
+  letter-spacing:8px;
+  font-weight:800;
+  color:#ffffff;
+  text-shadow:0 4px 20px #184b71;
+  text-align:center;
+}
+
+.subtitle {
+  color:#d9f2ff;
+  text-align:center;
+  letter-spacing:3px;
+  font-size:11px;
+  margin:10px 0 30px;
+}
+
+.menuButton {
+  display:block;
+  width:100%;
+  padding:16px;
+  border-radius:13px;
+  background:linear-gradient(110deg,#b7e8f8,#e5f8ff);
+  color:#244c68;
+  font-weight:800;
+  margin-top:12px;
+  font-size:14px;
+}
+
+.menuButton.primary {
+  background:linear-gradient(110deg,#4d9fc7,#85d5ed);
+  color:white;
+}
+
+h2 {
+  margin:0 0 8px;
+  font-size:23px;
+}
+
+p {
+  font-size:13px;
+  line-height:1.6;
+  color:#698397;
+}
+
+label {
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  margin:16px 0 7px;
+}
+
+input,select {
+  width:100%;
+  padding:12px;
+  border:1px solid #c7e0ec;
+  border-radius:10px;
+  background:white;
+  color:#31556e;
+}
+
+.back {
+  background:#e8f4f9;
+  color:#41647b;
+  padding:11px 16px;
+  border-radius:10px;
+  font-weight:700;
+  margin-top:18px;
+}
+
+#hud {
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:5;
+}
+
+#topbar {
+  position:absolute;
+  top:15px;
+  left:15px;
+  right:15px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+}
+
+.hudBox {
+  background:#183b55c9;
+  color:white;
+  border:1px solid #ffffff55;
+  border-radius:13px;
+  padding:12px 16px;
+  font-size:12px;
+  backdrop-filter:blur(10px);
+}
+
+#xpBar {
+  height:5px;
+  width:130px;
+  background:#ffffff55;
+  border-radius:10px;
+  margin-top:6px;
+  overflow:hidden;
+}
+
+#xpFill {
+  height:100%;
+  width:0%;
+  background:#8be3ff;
+}
+
+#actionButtons {
+  position:absolute;
+  bottom:20px;
+  right:20px;
+  display:flex;
+  gap:8px;
+  pointer-events:auto;
+}
+
+.actionButton {
+  padding:14px 17px;
+  background:#f4fcffed;
+  color:#315873;
+  border-radius:14px;
+  font-weight:800;
+  box-shadow:0 5px 20px #173e5b44;
+}
+
+#movementHelp {
+  position:absolute;
+  bottom:20px;
+  left:20px;
+  color:white;
+  background:#183b55c9;
+  border-radius:12px;
+  padding:13px;
+  font-size:11px;
+  line-height:1.7;
+}
+
+#trickPanel {
+  position:fixed;
+  z-index:8;
+  right:20px;
+  bottom:100px;
+  width:min(310px,90vw);
+  max-height:65vh;
+  overflow-y:auto;
+  background:#f5fbffef;
+  backdrop-filter:blur(12px);
+  border:1px solid white;
+  border-radius:18px;
+  padding:17px;
+  box-shadow:0 10px 35px #173b5555;
+}
+
+.trick {
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#e5f3fa;
+  color:#315873;
+  border-radius:9px;
+  padding:11px;
+  margin-top:7px;
+  text-align:left;
+  font-size:12px;
+  font-weight:700;
+}
+
+.trick.locked {
+  opacity:.48;
+}
+
+.trick.selected {
+  background:#9eddf2;
+}
+
+#toast {
+  position:fixed;
+  top:90px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#173c58e8;
+  color:white;
+  padding:12px 22px;
+  border-radius:30px;
+  z-index:20;
+  font-size:12px;
+  pointer-events:none;
+}
+
+.swatches {
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+}
+
+.swatch {
+  width:31px;
+  height:31px;
+  border:3px solid white;
+  outline:1px solid #abcbd9;
+  border-radius:50%;
+  cursor:pointer;
+}
+
+#roomCode {
+  font-size:24px;
+  font-weight:800;
+  text-align:center;
+  letter-spacing:5px;
+  padding:15px;
+  background:#e3f5fc;
+  border-radius:12px;
+  margin:15px 0;
+}
+
+.smallNote {
+  font-size:10px;
+  color:#8197a6;
+  margin-top:12px;
+}
+
+@media(max-width:600px) {
+  .logo {font-size:35px}
+  .panel {padding:23px}
+  #actionButtons {right:8px;bottom:10px;gap:4px}
+  .actionButton {padding:12px 9px;font-size:10px}
+  #movementHelp {left:8px;bottom:10px;font-size:9px}
+}
 </style>
 </head>
+
 <body>
-<div id="ui">
-<div id="logo">ICE DREAM</div>
-<div id="help">
-<b>CONTROLS</b><br>
-W A S D – Skate<br>
-SPACE – Jump<br>
-Mouse – Camera<br>
-<b>Welcome to the rink!</b>
-</div>
-<div id="status">⛸️ TRAINING MODE</div>
-<div id="moves">
-<button onclick="move('jump')">JUMPS</button>
-<button onclick="move('spin')">SPINS</button>
-<button onclick="move('foot')">FOOTWORK</button>
-</div>
+
+<div id="game"></div>
+
+<!-- MAIN MENU -->
+<div class="screen" id="mainMenu">
+  <div style="width:min(450px,92vw)">
+    <div class="logo">ICE DREAM</div>
+    <div class="subtitle">YOUR FIGURE SKATING JOURNEY</div>
+
+    <button class="menuButton primary" onclick="openCreator()">
+      ✦ CREATE YOUR SKATER
+    </button>
+
+    <button class="menuButton" onclick="startGame()">
+      PLAY
+    </button>
+
+    <button class="menuButton" onclick="openMultiplayer()">
+      MULTIPLAYER
+    </button>
+
+    <button class="menuButton" onclick="showSettings()">
+      SETTINGS
+    </button>
+
+    <p style="text-align:center;color:white">
+      A WORLD OF FIGURE SKATING
+    </p>
+  </div>
 </div>
 
+<!-- CHARACTER CREATOR -->
+<div class="screen hidden" id="creator">
+  <div class="panel">
+    <h2>CREATE YOUR SKATER</h2>
+    <p>Design your own figure skater before entering the rink.</p>
+
+    <label>Character</label>
+    <select id="gender">
+      <option value="female">Girl</option>
+      <option value="male">Boy</option>
+    </select>
+
+    <label>Skin colour</label>
+    <div class="swatches" id="skinSwatches"></div>
+
+    <label>Hair colour</label>
+    <div class="swatches" id="hairSwatches"></div>
+
+    <label>Eye colour</label>
+    <div class="swatches" id="eyeSwatches"></div>
+
+    <label>Skater name</label>
+    <input id="skaterName" maxlength="18" value="My Skater">
+
+    <button class="menuButton primary" onclick="saveCharacter()">
+      SAVE CHARACTER
+    </button>
+
+    <button class="back" onclick="showMenu()">BACK</button>
+  </div>
+</div>
+
+<!-- MULTIPLAYER -->
+<div class="screen hidden" id="multiplayer">
+  <div class="panel">
+    <h2>MULTIPLAYER</h2>
+    <p>Meet other skaters and train together.</p>
+
+    <button class="menuButton primary" onclick="createRoom()">
+      CREATE ROOM
+    </button>
+
+    <label>Enter friend's room code</label>
+    <input id="joinCode" placeholder="ROOM CODE">
+
+    <button class="menuButton" onclick="joinRoom()">
+      JOIN ROOM
+    </button>
+
+    <div id="roomCode" class="hidden"></div>
+    <p id="roomStatus"></p>
+
+    <p class="smallNote">
+      Multiplayer requires a connected multiplayer server.
+      Room codes in this prototype are for interface testing only.
+    </p>
+
+    <button class="back" onclick="showMenu()">BACK</button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen hidden" id="settings">
+  <div class="panel">
+    <h2>SETTINGS</h2>
+
+    <label>Camera distance</label>
+    <input type="range" min="4" max="13" value="8" id="cameraDistance">
+
+    <label>Music</label>
+    <select>
+      <option>On</option>
+      <option>Off</option>
+    </select>
+
+    <label>Graphics</label>
+    <select>
+      <option>High</option>
+      <option>Medium</option>
+      <option>Low</option>
+    </select>
+
+    <button class="back" onclick="showMenu()">BACK</button>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="topbar">
+    <div class="hudBox">
+      <b id="playerName">MY SKATER</b><br>
+      <span id="levelText">LEVEL 1</span>
+    </div>
+
+    <div class="hudBox">
+      <b id="xpText">0 XP</b>
+      <div id="xpBar"><div id="xpFill"></div></div>
+    </div>
+
+    <div class="hudBox" style="pointer-events:auto">
+      <button onclick="showMenu()" style="background:none;color:white">
+        MENU ☰
+      </button>
+    </div>
+  </div>
+
+  <div id="movementHelp">
+    W A S D – SKATE<br>
+    SPACE – JUMP<br>
+    SHIFT – SPRINT<br>
+    MOUSE – CAMERA
+  </div>
+
+  <div id="actionButtons">
+    <button class="actionButton" onclick="openTricks('JUMPS')">JUMPS</button>
+    <button class="actionButton" onclick="openTricks('SPINS')">SPINS</button>
+    <button class="actionButton" onclick="openTricks('FOOTWORK')">FOOTWORK</button>
+  </div>
+</div>
+
+<div id="trickPanel" class="hidden">
+  <h3 id="trickTitle">JUMPS</h3>
+  <p>Select a move to perform.</p>
+  <div id="trickList"></div>
+  <button class="back" onclick="closeTricks()">CLOSE</button>
+</div>
+
+<div id="toast" class="hidden"></div>
+
 <script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
 </script>
+
 <script type="module">
 import * as THREE from 'three';
 
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0xb8e7f8);
-scene.fog=new THREE.Fog(0xb8e7f8,35,100);
+/* =====================================
+   ICE DREAM 2.0
+   GAME FOUNDATION
+===================================== */
 
-const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.shadowMap.enabled=true;
-document.body.appendChild(renderer.domElement);
+const $ = id => document.getElementById(id);
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x7295b2,2));
-const sun=new THREE.DirectionalLight(0xffffff,2.5);
-sun.position.set(-10,20,10);
-sun.castShadow=true;
-scene.add(sun);
+let scene, camera, renderer, clock;
+let skater, torso, head, leftArm, rightArm, leftLeg, rightLeg;
+let rinkGroup;
+let running = false;
+let gameStarted = false;
 
-const mat=(color,roughness=.7)=>new THREE.MeshStandardMaterial({color,roughness});
-const ice=mat(0xc9f1ff,.2);
-const white=mat(0xffffff);
-const blue=mat(0x91cbea);
-const dark=mat(0x29425c);
-const skin=mat(0xf0c6a5);
-const hair=mat(0x593c32);
+let speed = 0;
+let velocity = new THREE.Vector3();
+let currentAction = null;
+let actionTime = 0;
+let actionDuration = 1.8;
+let actionRotation = 0;
+let jumpHeight = 0;
 
-function cube(w,h,d,material,x,y,z){
-const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
-m.position.set(x,y,z);
-m.castShadow=true;m.receiveShadow=true;
-scene.add(m);return m;
-}
+let xp = 0;
+let level = 1;
 
-// RINK
-cube(32,.5,24,blue,0,-.5,0);
-cube(30,.15,22,ice,0,-.17,0);
-
-// rink markings
-const lineMat=new THREE.MeshBasicMaterial({color:0xffffff});
-function line(x1,z1,x2,z2){
-const dx=x2-x1,dz=z2-z1;
-const m=new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(dx,dz),.015,.06),lineMat);
-m.position.set((x1+x2)/2,-.08,(z1+z2)/2);
-m.rotation.y=-Math.atan2(dz,dx);scene.add(m);
-}
-line(-14,-10,14,-10);line(-14,10,14,10);
-line(-14,0,14,0);
-
-const board=mat(0xf5fcff);
-cube(32,1.2,.25,board,0,.55,-11);
-cube(32,1.2,.25,board,0,.55,11);
-cube(.25,1.2,22,board,-15.9,.55,0);
-cube(.25,1.2,22,board,15.9,.55,0);
-
-// roof and lights
-cube(38,.5,29,white,0,10,0);
-for(let i=-1;i<=1;i++){
-const light=new THREE.PointLight(0xffffff,100,30);
-light.position.set(i*10,8,0);scene.add(light);
-}
-
-// avatar
-const skater=new THREE.Group();
-scene.add(skater);
-
-const torso=new THREE.Group();
-torso.position.y=1.35;skater.add(torso);
-
-const body=new THREE.Mesh(new THREE.CapsuleGeometry(.3,.65,5,10),mat(0x8ec9ee));
-body.castShadow=true;torso.add(body);
-
-const head=new THREE.Mesh(new THREE.SphereGeometry(.24,24,24),skin);
-head.position.y=.72;torso.add(head);
-
-const hairTop=new THREE.Mesh(new THREE.SphereGeometry(.25,20,16),hair);
-hairTop.scale.set(1, .65, 1);
-hairTop.position.y=.84;torso.add(hairTop);
-
-function limb(parent,length,radius,material,y){
-const pivot=new THREE.Group();
-pivot.position.set(0,y,0);parent.add(pivot);
-const mesh=new THREE.Mesh(new THREE.CapsuleGeometry(radius,length,5,8),material);
-mesh.position.y=-length/2;
-mesh.castShadow=true;pivot.add(mesh);
-return pivot;
-}
-
-const leftArm=limb(torso,.65,.105,skin,.25);
-leftArm.position.x=-.4;
-const rightArm=limb(torso,.65,.105,skin,.25);
-rightArm.position.x=.4;
-
-const leftLeg=limb(skater,.85,.14,mat(0x8ec9ee),.9);
-leftLeg.position.x=-.17;
-const rightLeg=limb(skater,.85,.14,mat(0x8ec9ee),.9);
-rightLeg.position.x=.17;
-
-function skate(x){
-const g=new THREE.Group();g.position.set(x,.07,0);skater.add(g);
-const boot=new THREE.Mesh(new THREE.BoxGeometry(.2,.18,.55),white);
-boot.position.z=-.12;g.add(boot);
-const blade=new THREE.Mesh(new THREE.BoxGeometry(.035,.045,.65),dark);
-blade.position.y=-.1;blade.position.z=-.12;g.add(blade);
-return g;
-}
-const skateL=skate(-.17),skateR=skate(.17);
-
-// controls
-const keys={};
-addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space')e.preventDefault()});
-addEventListener('keyup',e=>keys[e.code]=false);
-
-let speed=0,turn=0,jump=0,spin=0,foot=0;
-let action='';
-
-window.move=function(type){
-action=type;
-if(type==='jump')jump=1;
-if(type==='spin')spin=1;
-if(type==='foot')foot=1;
-document.getElementById('status').textContent=
-type==='jump'?'⛸️ JUMP TRAINING':type==='spin'?'✨ SPIN TRAINING':'💫 FOOTWORK TRAINING';
+let player = {
+  name:'My Skater',
+  gender:'female',
+  skin:'#efc4a3',
+  hair:'#593c32',
+  eyes:'#5596a9'
 };
 
-let last=performance.now();
-const clock=new THREE.Clock();
+const keys = {};
+const cameraTarget = new THREE.Vector3();
+const cameraOffset = new THREE.Vector3(0,5,8);
 
-function animate(){
-requestAnimationFrame(animate);
-const dt=Math.min(clock.getDelta(),.04);
+const skinColors = ['#f4d6bd','#efc4a3','#c98e68','#996447','#70452e','#422b20'];
+const hairColors = ['#251b18','#593c32','#a16c3d','#d4b071','#b74b34','#dedede','#171c28'];
+const eyeColors = ['#426d96','#559c87','#765039','#71808c','#478aaf'];
 
-// skating acceleration
-let forward=(keys.KeyW?1:0)-(keys.KeyS?1:0);
-let steering=(keys.KeyA?1:0)-(keys.KeyD?1:0);
-speed+=forward*5*dt;
-speed*=Math.pow(.985,dt*60);
-speed=THREE.MathUtils.clamp(speed,-5,10);
+let selectedColors = {
+  skin:'#efc4a3',
+  hair:'#593c32',
+  eyes:'#5596a9'
+};
 
-skater.rotation.y+=steering*dt*(1+Math.abs(speed)*.13);
-const direction=new THREE.Vector3(0,0,-1).applyQuaternion(skater.quaternion);
-skater.position.addScaledVector(direction,speed*dt);
-
-// jump
-if(keys.Space)jump=1;
-if(jump>0){
-skater.position.y+=Math.sin((1-jump)*Math.PI)*5*dt;
-jump-=dt*1.5;
-if(jump<=0){jump=0;skater.position.y=0}
-}
-if(skater.position.y<0)skater.position.y=0;
-
-// body animation
-const t=clock.elapsedTime;
-const moving=Math.min(Math.abs(speed)/5,1);
-torso.rotation.z=THREE.MathUtils.lerp(torso.rotation.z,-steering*.18,.08);
-torso.rotation.x=-moving*.08;
-leftArm.rotation.z=-.25+Math.sin(t*7)*moving*.2;
-rightArm.rotation.z=.25-Math.sin(t*7)*moving*.2;
-leftLeg.rotation.x=Math.sin(t*8)*moving*.3;
-rightLeg.rotation.x=-Math.sin(t*8)*moving*.3;
-
-// spins
-if(spin>0){
-skater.rotation.y+=dt*8;
-spin=Math.max(0,spin-dt*.9);
-}
-// footwork
-if(foot>0){
-leftLeg.rotation.x=Math.sin(t*18)*.8;
-rightLeg.rotation.x=-Math.sin(t*18)*.8;
-foot=Math.max(0,foot-dt*2);
+function createSwatches(elementId, colors, key) {
+  const holder = $(elementId);
+  colors.forEach(color => {
+    const button = document.createElement('button');
+    button.className = 'swatch';
+    button.style.background = color;
+    button.title = color;
+    button.onclick = () => {
+      selectedColors[key] = color;
+      [...holder.children].forEach(c => c.style.outline = '1px solid #abcbd9');
+      button.style.outline = '3px solid #428bb5';
+    };
+    if(color === selectedColors[key]) button.style.outline = '3px solid #428bb5';
+    holder.appendChild(button);
+  });
 }
 
-// camera follows skater
-const target=new THREE.Vector3(0,2,5).applyQuaternion(skater.quaternion).add(skater.position);
-camera.position.lerp(target,.09);
-camera.lookAt(skater.position.x,1.2,skater.position.z);
+createSwatches('skinSwatches',skinColors,'skin');
+createSwatches('hairSwatches',hairColors,'hair');
+createSwatches('eyeSwatches',eyeColors,'eyes');
 
-// keep player on rink
-skater.position.x=THREE.MathUtils.clamp(skater.position.x,-14,14);
-skater.position.z=THREE.MathUtils.clamp(skater.position.z,-10,10);
-
-renderer.render(scene,camera);
+function notify(message) {
+  $('toast').textContent = message;
+  $('toast').classList.remove('hidden');
+  clearTimeout(notify.timer);
+  notify.timer = setTimeout(()=>$('toast').classList.add('hidden'),2200);
 }
-animate();
 
-addEventListener('resize',()=>{
-camera.aspect=innerWidth/innerHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(innerWidth,innerHeight);
-});
+function hideScreens() {
+  ['mainMenu','creator','multiplayer','settings'].forEach(id=>$ (id).classList.add('hidden'));
+}
+
+window.showMenu = function() {
+  hideScreens();
+  $('mainMenu').classList.remove('hidden');
+  $('hud').classList.add('hidden');
+  $('trickPanel').classList.add('hidden');
+  running = false;
+  gameStarted = false;
+  if(skater) skater.position.set(0,0,5);
+};
+
+window.openCreator = function() {
+  hideScreens();
+  $('creator').classList.remove('hidden');
+};
+
+window.openMultiplayer = function() {
+  hideScreens();
+  $('multiplayer').classList.remove('hidden');
+};
+
+window.showSettings = function() {
+  hideScreens();
+  $('settings').classList.remove('hidden');
+};
+
+window.saveCharacter = function() {
+  player.name = $('skaterName').value.trim() || 'My Skater';
+  player.gender = $('gender').value;
+  player.skin = selectedColors.skin;
+  player.hair = selectedColors.hair;
+  player.eyes = selectedColors.eyes;
+
+  if(skater) rebuildSkater();
+
+  $('playerName').textContent = player.name.toUpperCase();
+  notify('Character saved!');
+  startGame();
+};
+
+window.createRoom = function() {
+  const code = Math.random().toString(36).substring(2,8).toUpperCase();
+  $('roomCode').textContent = code;
+  $('roomCode').classList.remove('hidden');
+  $('roomStatus').textContent =
+    'Demo room code created. A server is needed for real multiplayer.';
+};
+
+window.joinRoom = function() {
+  const code = $('joinCode').value.trim().toUpperCase();
+  if(code.length < 4) {
+    $('roomStatus').textContent = 'Please enter a valid room code.';
+    return;
+  }
+  $('roomStatus').textContent =
+    'Room code received: '+code+'. Real joining requires a multiplayer server.';
+};
+
+function init() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xb5d9e9);
+  scene.fog = new THREE.Fog(0xb5d9e9,35,110);
+
+  camera = new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,250);
+  camera.position.set(0,5,9);
+
+  renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+
+  $('game').appendChild(renderer.domElement);
+
+  clock = new THREE.Clock();
+
+  const ambient = new THREE.HemisphereLight(0xe8f7ff,0x738b9c,2);
+  scene.add(ambient);
+
+  const sun = new THREE.DirectionalLight(0xffffff,3);
+  sun.position.set(-12,25,12);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048,2048);
+  scene.add(sun);
+
+  buildArena();
+  buildSkater();
+
+  addEventListener('resize',resize);
+  addEventListener('keydown',e=>{
+    keys[e.code] = true;
+    if(e.code === 'Space') e.preventDefault();
+  });
+  addEventListener('keyup',e=>keys[e.code]=false);
+
+  animate();
+}
+
+function material(color,roughness=.7,metalness=0) {
+  return new THREE.MeshStandardMaterial({
+    color,roughness,metalness
+  });
+}
+
+function box(parent,w,h,d,mat,x,y,z) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(w,h,d),mat
+  );
+  mesh.position.set(x,y,z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+
+/* =====================================
+   ARENA
+===================================== */
+
+function buildArena() {
+  rinkGroup = new THREE.Group();
+  scene.add(rinkGroup);
+
+  const floor = material(0xbfeefa,.16,.15);
+  const boards = material(0xf8fdff,.3);
+  const glass = new THREE.MeshPhysicalMaterial({
+    color:0xd9f4ff,
+    transparent:true,
+    opacity:.22,
+    roughness:.08,
+    metalness:.1
+  });
+
+  box(rinkGroup,34,.5,26,floor,0,-.4,0);
+
+  // Ice surface
+  const iceMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(32,24),
+    new THREE.MeshPhysicalMaterial({
+      color:0xdaf7ff,
+      roughness:.12,
+      metalness:.2,
+      clearcoat:1,
+      clearcoatRoughness:.12
+    })
+  );
+  iceMesh.rotation.x=-Math.PI/2;
+  iceMesh.position.y=-.12;
+  iceMesh.receiveShadow=true;
+  rinkGroup.add(iceMesh);
+
+  // Boards
+  box(rinkGroup,32,1.1,.3,boards,0,.5,-12);
+  box(rinkGroup,32,1.1,.3,boards,0,.5,12);
+  box(rinkGroup,.3,1.1,24,boards,-16,.5,0);
+  box(rinkGroup,.3,1.1,24,boards,16,.5,0);
+
+  // Glass panels
+  box(rinkGroup,32,2,.08,glass,0,2,-12);
+  box(rinkGroup,32,2,.08,glass,0,2,12);
+  box(rinkGroup,.08,2,24,glass,-16,2,0);
+  box(rinkGroup,.08,2,24,glass,16,2,0);
+
+  // Markings
+  const red = new THREE.MeshBasicMaterial({color:0xd75e72});
+  const blue = new THREE.MeshBasicMaterial({color:0x428ac7});
+  const whiteLine = new THREE.MeshBasicMaterial({color:0xffffff});
+
+  function rinkLine(x,z,length,width,mat,rotation=0) {
+    const m = new THREE.Mesh(
+      new THREE.BoxGeometry(length,.015,width),mat
+    );
+    m.position.set(x,-.095,z);
+    m.rotation.y=rotation;
+    rinkGroup.add(m);
+  }
+
+  rinkLine(0,0,.08,24,red,Math.PI/2);
+  rinkLine(0,-4,32,.055,blue);
+  rinkLine(0,4,32,.055,blue);
+  rinkLine(0,-11,32,.08,whiteLine);
+  rinkLine(0,11,32,.08,whiteLine);
+
+  // Goal circles
+  for(const x of [-10,10]) {
+    const circle = new THREE.Mesh(
+      new THREE.TorusGeometry(3,.035,8,80),
+      blue
+    );
+    circle.rotation.x=Math.PI/2;
+    circle.position.set(x,-.09,0);
+    rinkGroup.add(circle);
+  }
+
+  // Ceiling
+  box(rinkGroup,38,.5,32,material(0xf2f8fb),0,11,0);
+
+  // Structural beams
+  for(let x=-14;x<=14;x+=7) {
+    box(rinkGroup,.18,8,.18,material(0xb4cad8),x,6,0);
+  }
+
+  // Arena lights
+  for(let x=-12;x<=12;x+=8) {
+    const light = new THREE.PointLight(0xffffff,90,35);
+    light.position.set(x,9,0);
+    scene.add(light);
+  }
+
+  // Outside background
+  box(scene,150,1,150,material(0x8eb8cb),0,-1.2,0);
+}
+
+/* =====================================
+   CHARACTER
+   Temporary procedural model.
+   Replace with rigged human GLB model
+   for photorealistic appearance.
+===================================== */
+
+function createLimb(parent,length,radius,mat,x,y,z) {
+  const pivot = new THREE.Group();
+  pivot.position.set(x,y,z);
+  parent.add(pivot);
+
+  const mesh = new THREE.Mesh(
+    new THREE.CapsuleGeometry(radius,length,8,12),mat
+  );
+  mesh.position.y=-length/2;
+  mesh.castShadow=true;
+  pivot.add(mesh);
+
+  return pivot;
+}
+
+function buildSkater() {
+  skater = new THREE.Group();
+  scene.add(skater);
+  rebuildSkater();
+}
+
+function rebuildSkater() {
+  if(!skater) return;
+
+  while(skater.children.length) {
+    skater.remove(skater.children[0]);
+  }
+
+  const skin = material(player.skin,.7);
+  const hair = material(player.hair,.8);
+  const outfit = material(0x86cce8,.35);
+  const trousers = material(0x315879,.55);
+  const eyes = material(player.eyes,.3);
+  const white = material(0xf9fdff,.3);
+  const blade = material(0x9eb7c8,.18,.8);
+
+  torso = new THREE.Group();
+  torso.position.y=1.3;
+  skater.add(torso);
+
+  // Torso
+  const body = new THREE.Mesh(
+    new THREE.CapsuleGeometry(.29,.64,8,16),outfit
+  );
+  body.castShadow=true;
+  torso.add(body);
+
+  // Neck
+  const neck = new THREE.Mesh(
+    new THREE.CylinderGeometry(.09,.11,.18,12),skin
+  );
+  neck.position.y=.52;
+  torso.add(neck);
+
+  // Head
+  head = new THREE.Group();
+  head.position.y=.78;
+  torso.add(head);
+
+  const face = new THREE.Mesh(
+    new THREE.SphereGeometry(.245,32,32),skin
+  );
+  face.scale.set(.9,1.15,.95);
+  head.add(face);
+
+  // Hair cap
+  const hairCap = new THREE.Mesh(
+    new THREE.SphereGeometry(.25,24,20),hair
+  );
+  hairCap.scale.set(1,1,.95);
+  hairCap.position.y=.09;
+  head.add(hairCap);
+
+  // Eyes
+  for(const x of [-.085,.085]) {
+    const eye = new THREE.Mesh(
+      new THREE.SphereGeometry(.027,12,12),eyes
+    );
+    eye.position.set(x,.02,-.222);
+    head.add(eye);
+  }
+
+  // Arms
+  leftArm=createLimb(torso,.58,.085,skin,-.39,.25,0);
+  rightArm=createLimb(torso,.58,.085,skin,.39,.25,0);
+
+  // Legs
+  leftLeg=createLimb(skater,.83,.12,trousers,-.17,.88,0);
+  rightLeg=createLimb(skater,.83,.12,trousers,.17,.88,0);
+
+  // Boots and blades
+  for(const x of [-.17,.17]) {
+    const boot = box(skater,.2,.2,.48,white,x,.12,-.08);
+    const metal = box(skater,.035,.045,.62,blade,x,.015,-.1);
+  }
+
+  skater.position.set(0,0,5);
+}
+
+/* =====================================
+   TRICK SYSTEM
+===================================== */
+
+const tricks = {
+  JUMPS:[
+    {name:'Waltz Jump',xp:0,type:'jump',rotation:Math.PI},
+    {name:'Salchow',xp:0,type:'jump',rotation:Math.PI*2},
+    {name:'Toe Loop',xp:80,type:'jump',rotation:Math.PI*2},
+    {name:'Loop',xp:150,type:'jump',rotation:Math.PI*2},
+    {name:'Flip',xp:250,type:'jump',rotation:Math.PI*2},
+    {name:'Lutz',xp:400,type:'jump',rotation:Math.PI*2},
+    {name:'Axel',xp:550,type:'jump',rotation:Math.PI*3},
+    {name:'Double Salchow',xp:750,type:'jump',rotation:Math.PI*4},
+    {name:'Double Loop',xp:900,type:'jump',rotation:Math.PI*4},
+    {name:'Double Flip',xp:1100,type:'jump',rotation:Math.PI*4},
+    {name:'Double Lutz',xp:1300,type:'jump',rotation:Math.PI*4},
+    {name:'Double Axel',xp:1500,type:'jump',rotation:Math.PI*5},
+    {name:'Triple Salchow',xp:2200,type:'jump',rotation:Math.PI*6},
+    {name:'Triple Lutz',xp:3000,type:'jump',rotation:Math.PI*6}
+  ],
+  SPINS:[
+    {name:'Upright Spin',xp:0,type:'spin',rotation:Math.PI*6},
+    {name:'Scratch Spin',xp:80,type:'spin',rotation:Math.PI*8},
+    {name:'Sit Spin',xp:180,type:'spin',rotation:Math.PI*8},
+    {name:'Camel Spin',xp:300,type:'spin',rotation:Math.PI*8},
+    {name:'Layback Spin',xp:500,type:'spin',rotation:Math.PI*10},
+    {name:'Biellmann Spin',xp:900,type:'spin',rotation:Math.PI*12},
+    {name:'Combination Spin',xp:1200,type:'spin',rotation:Math.PI*12}
+  ],
+  FOOTWORK:[
+    {name:'Three Turns',xp:0,type:'foot',rotation:Math.PI},
+    {name:'Mohawks',xp:0,type:'foot',rotation:Math.PI},
+    {name:'Choctaws',xp:100,type:'foot',rotation:Math.PI*2},
+    {name:'Brackets',xp:200,type:'foot',rotation:Math.PI*2},
+    {name:'Rockers',xp:350,type:'foot',rotation:Math.PI*2},
+    {name:'Counters',xp:450,type:'foot',rotation:Math.PI*2},
+    {name:'Step Sequence',xp:650,type:'foot',rotation:Math.PI*3}
+  ]
+};
+
+window.openTricks = function(category) {
+  if(!gameStarted) return;
+  $('trickTitle').textContent=category;
+  $('trickList').innerHTML='';
+
+  tricks[category].forEach(trick=>{
+    const unlocked=xp>=trick.xp;
+    const btn=document.createElement('button');
+    btn.className='trick '+(!unlocked?'locked':'');
+    btn.innerHTML=
+      '<span>'+trick.name+'</span>'+
+      '<span>'+(unlocked?'SELECT':'🔒 '+trick.xp+' XP')+'</span>';
+
+    if(unlocked) {
+      btn.onclick=()=>{
+        closeTricks();
+        performTrick(trick);
+      };
+    }
+
+    $('trickList').appendChild(btn);
+  });
+
+  $('trickPanel').classList.remove('hidden');
+};
+
+window.closeTricks = function() {
+  $('trickPanel').classList.add('hidden');
+};
+
+function performTrick(trick) {
+  if(currentAction) {
+    notify('Finish your current move first!');
+    return;
+  }
+
+  currentAction=trick;
+  actionTime=0;
+  actionDuration=trick.type==='jump'?1.5:
+                 trick.type==='spin'?3:2.2;
+  actionRotation=0;
+  jumpHeight=0;
+
+  notify(trick.name+'!');
+}
+
+function finishTrick() {
+  if(!currentAction) return;
+
+  const move=currentAction;
+  currentAction=null;
+  jumpHeight=0;
+
+  xp+=move.type==='jump'?35:move.type==='spin'?25:20;
+
+  level=1+Math.floor(xp/250);
+  $('xpText').textContent=xp+' XP';
+  $('levelText').textContent='LEVEL '+level;
+  $('xpFill').style.width=(xp%250)/250*100+'%';
+
+  notify(move.name+' completed! +XP');
+}
+
+/* =====================================
+   MOVEMENT AND ANIMATION
+===================================== */
+
+function updateMovement(dt) {
+  if(!gameStarted) return;
+
+  const forward=(keys.KeyW?1:0)-(keys.KeyS?1:0);
+  const turn=(keys.KeyA?1:0)-(keys.KeyD?1:0);
+
+  const sprint=keys.ShiftLeft?1.5:1;
+  const maxSpeed=keys.ShiftLeft?10:6;
+
+  speed+=forward*7*dt;
+  speed*=Math.pow(.986,dt*60);
+  speed=THREE.MathUtils.clamp(speed,-3,maxSpeed);
+
+  if(!currentAction) {
+    skater.rotation.y+=turn*dt*(1+Math.abs(speed)*.12);
+    const direction=new THREE.Vector3(0,0,-1)
+      .applyQuaternion(skater.quaternion);
+    skater.position.addScaledVector(direction,speed*dt);
+
+    torso.rotation.z=THREE.MathUtils.lerp(
+      torso.rotation.z,-turn*.2,.09
+    );
+    torso.rotation.x=-Math.abs(speed)*.012;
+
+    const movement=Math.min(Math.abs(speed)/6,1);
+    leftLeg.rotation.x=Math.sin(performance.now()*.009)*movement*.3;
+    rightLeg.rotation.x=-leftLeg.rotation.x;
+
+    leftArm.rotation.z=-.15-turn*.15;
+    rightArm.rotation.z=.15-turn*.15;
+  } else {
+    animateTrick(dt);
+  }
+
+  // Rink boundaries
+  skater.position.x=THREE.MathUtils.clamp(skater.position.x,-14,14);
+  skater.position.z=THREE.MathUtils.clamp(skater.position.z,-10,10);
+}
+
+function animateTrick(dt) {
+  actionTime+=dt;
+  const progress=Math.min(actionTime/actionDuration,1);
+  const trick=currentAction;
+
+  if(trick.type==='jump') {
+    // Basic jump arc with rotation.
+    // Individual authentic takeoff and landing
+    // animations are added with external motion clips.
+    jumpHeight=Math.sin(progress*Math.PI)*2.1;
+    skater.position.y=jumpHeight;
+    actionRotation=trick.rotation*progress;
+    skater.rotation.y+=dt*(trick.rotation/actionDuration);
+
+    leftArm.rotation.z=-.8;
+    rightArm.rotation.z=.8;
+    torso.rotation.x=-.15;
+  }
+
+  if(trick.type==='spin') {
+    skater.rotation.y+=dt*(trick.rotation/actionDuration);
+    torso.rotation.y=Math.sin(progress*Math.PI*2)*.12;
+    leftArm.rotation.z=-.4;
+    rightArm.rotation.z=.4;
+
+    if(trick.name==='Sit Spin') {
+      leftLeg.rotation.x=-.9;
+      rightLeg.rotation.x=-.9;
+      torso.rotation.x=.4;
+    } else if(trick.name==='Camel Spin') {
+      torso.rotation.x=-.8;
+      leftLeg.rotation.x=1.3;
+    } else if(trick.name==='Layback Spin') {
+      torso.rotation.x=.7;
+    }
+  }
+
+  if(trick.type==='foot') {
+    leftLeg.rotation.x=Math.sin(progress*Math.PI*8)*.7;
+    rightLeg.rotation.x=-leftLeg.rotation.x;
+    skater.rotation.y+=dt*(trick.rotation/actionDuration);
+    torso.rotation.z=Math.sin(progress*Math.PI*8)*.12;
+    leftArm.rotation.z=-.3;
+    rightArm.rotation.z=.3;
+  }
+
+  if(progress>=1) {
+    skater.position.y=0;
+    torso.rotation.x=0;
+    torso.rotation.y=0;
+    torso.rotation.z=0;
+    leftLeg.rotation.x=0;
+    rightLeg.rotation.x=0;
+    leftArm.rotation.z=0;
+    rightArm.rotation.z=0;
+    finishTrick();
+  }
+}
+
+/* =====================================
+   CAMERA
+===================================== */
+
+function updateCamera(dt) {
+  if(!skater) return;
+
+  const distance=Number($('cameraDistance').value);
+  const offset=new THREE.Vector3(0,4,distance)
+    .applyQuaternion(skater.quaternion);
+
+  cameraTarget.copy(skater.position)
+    .add(new THREE.Vector3(0,1.1,0));
+
+  const desired=cameraTarget.clone().add(offset);
+  camera.position.lerp(desired,1-Math.pow(.001,dt));
+  camera.lookAt(cameraTarget);
+}
+
+/* =====================================
+   GAME FLOW
+===================================== */
+
+window.startGame = function() {
+  hideScreens();
+  gameStarted=true;
+  running=true;
+
+  $('hud').classList.remove('hidden');
+  $('playerName').textContent=player.name.toUpperCase();
+
+  skater.position.set(0,0,5);
+  speed=0;
+
+  notify('Welcome to ICE DREAM!');
+};
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const dt=Math.min(clock.getDelta(),.035);
+
+  if(running) {
+    updateMovement(dt);
+    updateCamera(dt);
+  }
+
+  renderer.render(scene,camera);
+}
+
+function resize() {
+  if(!camera||!renderer) return;
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+}
+
+init();
+
 </script>
 </body>
 </html>
